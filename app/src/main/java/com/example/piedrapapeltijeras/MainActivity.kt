@@ -1,20 +1,27 @@
 package com.example.piedrapapeltijeras
 
-import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+
 class MainActivity : AppCompatActivity(), Comunicador {
+
+    var maxPuntJugador = 0
+    var nombreJugador = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        nombreJugador = intent.getStringExtra("NombreJugador").toString()
+
     }
 
     var numRonda = 0
@@ -126,6 +133,7 @@ class MainActivity : AppCompatActivity(), Comunicador {
             .setTitle("Finalizar partida")
             .setMessage("¿Está seguro de que desea finalizar la partida y empezar una nueva?")
             .setPositiveButton("Si") { dialog, which ->
+                guardarResultados()
                 empates = 0
                 victorias = 0
                 derrotas = 0
@@ -137,13 +145,26 @@ class MainActivity : AppCompatActivity(), Comunicador {
                 jugador.visibility = View.INVISIBLE
                 maquina.visibility = View.INVISIBLE
 
+
             }
 //Si utilizamos null como listener, el diálogo simplemente se cierra
             .setNegativeButton("No", null)
             .show()
     }
 
+    fun guardarResultados(){
+
+        var diferencia = victorias - derrotas
 
 
-
+            GlobalScope.launch {
+                maxPuntJugador = PuntuaciónApp.database.DAO().buscarMaxPuntPorNombre(nombreJugador)
+                if (diferencia > maxPuntJugador) {
+                    var jugador = PuntuaciónApp.database.DAO().findbyname(nombreJugador)
+                    jugador.maxPunt = diferencia
+                    PuntuaciónApp.database.DAO().update(jugador)
+                }
+                PuntuaciónApp.database.DAO().actualizarPartidas(nombreJugador)
+            }
+    }
 }
