@@ -38,7 +38,7 @@ class login : AppCompatActivity() {
                 }
                 ETNombre.text.clear()
             }
-        }//
+        }
         return nombreJugador
     }
 }
